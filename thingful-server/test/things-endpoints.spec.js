@@ -13,10 +13,10 @@ describe('Things Endpoints', function() {
         testReviews,
     } = helpers.makeThingsFixtures();
 
-    function makeAuthHeader(user) {
-        const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64');
-        return `Basic ${token}`;
-    }
+    // function makeAuthHeader(user) {
+    //     const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64');
+    //     return `Basic ${token}`;
+    // }
 
     before('make knex instance', () => {
         db = knex({
@@ -61,14 +61,7 @@ describe('Things Endpoints', function() {
                 );
                 return supertest(app)
                     .get('/api/things')
-                    .expect(200)
-                    .then(res => {
-                        res.body.user.date_created = null;
-                        expectedThings.user.date_created = null;
-                        res.body.date_created = null;
-                        expectedThings.date_created = null;
-                        expect(res.body).to.eql(expectedThings);
-                    });
+                    .expect(200, expectedThings);
             });
         });
 
@@ -102,20 +95,12 @@ describe('Things Endpoints', function() {
 
     describe('GET /api/things/:thing_id', () => {
 
-        
         context('Given no things', () => {
 
             beforeEach('seed users', () =>
-                helpers.seedThingsTables(
-                    db,
-                    testUsers,
-                    [],
-                    []
-                )
+                helpers.seedUsers(db, testUsers)
             );
 
-            afterEach('cleanup', () => helpers.cleanTables(db));
-            
             it('responds with 404', () => {
                 const thingId = 123456;
                 return supertest(app)
@@ -147,12 +132,9 @@ describe('Things Endpoints', function() {
                     .get(`/api/things/${thingId}`)
                     .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
                     .expect(200)
-                    .then(res => {
-                        res.body.user.date_created = null;
-                        expectedThing.user.date_created = null;
-                        res.body.date_created = null;
-                        expectedThing.date_created = null;
-                        expect(res.body).to.eql(expectedThing);
+                    .expect(res => {
+                        expect(res.body.title).to.eql(expectedThing.title);
+                        expect(res.body.content).to.eql(expectedThing.content);
                     });
             });
         });
@@ -188,15 +170,8 @@ describe('Things Endpoints', function() {
     describe('GET /api/things/:thing_id/reviews', () => {
         context('Given no things', () => {
 
-            beforeEach('cleanup', () => helpers.cleanTables(db));
-
             beforeEach('seed users', () =>
-                helpers.seedThingsTables(
-                    db,
-                    testUsers,
-                    [],
-                    []
-                )
+                helpers.seedUsers(db, testUsers)
             );
 
             it('responds with 404', () => {

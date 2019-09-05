@@ -13,11 +13,6 @@ describe('Protected endpoints', function() {
         testReviews
     } = helpers.makeThingsFixtures();
 
-    function makeAuthHeader(user) {
-        const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64');
-        return `Basic ${token}`;
-    }
-
     before('make knex instance', () => {
         db = knex({
             client: 'pg',
@@ -44,12 +39,19 @@ describe('Protected endpoints', function() {
     const protectedEndpoints = [
         {
             name: 'GET /api/things/:thing_id',
-            path: '/api/things/1'
+            path: '/api/things/1',
+            method: supertest(app).get
         },
         {
-            name: 'GET /api/things/:thing_id',
-            path: '/api/things/1/reviews'
+            name: 'GET /api/things/:thing_id/reviews',
+            path: '/api/things/1/reviews',
+            method: supertest(app).get
         },
+        {
+            name: 'POST /api/reviews',
+            path: '/api/reviews',
+            method: supertest(app).post
+        }
     ];
 
     protectedEndpoints.forEach(endpoint => {
@@ -57,35 +59,31 @@ describe('Protected endpoints', function() {
 
             // eslint-disable-next-line quotes
             it(`responds with 401 'Missing basic token' when no basic token`, () => {
-                return supertest(app)
-                    .get(endpoint.path)
+                return endpoint.method(endpoint.path)
                     .expect(401, { error: 'Missing basic token.' });
             });
 
             // eslint-disable-next-line quotes
             it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
-                const userNoCreds = { username: '', password: '' };
-                return supertest(app)
-                    .get(endpoint.path)
-                    .set('Authorization', makeAuthHeader(userNoCreds))
+                const userNoCreds = { user_name: '', password: '' };
+                return endpoint.method(endpoint.path)
+                    .set('Authorization', helpers.makeAuthHeader(userNoCreds))
                     .expect(401, { error: 'Unauthorized request' });
             });
 
             // eslint-disable-next-line quotes
             it(`responds 401 'Unauthorized request' when invalid user`, () => {
                 const userInvalidCreds = { user_name: 'nouser', password: 'nopass' };
-                return supertest(app)
-                    .get(endpoint.path)
-                    .set('Authorization', makeAuthHeader(userInvalidCreds))
+                return endpoint.method(endpoint.path)
+                    .set('Authorization', helpers.makeAuthHeader(userInvalidCreds))
                     .expect(401, { error: 'Unauthorized request' });
             });
 
             //eslint-disable-next-line quotes
             it(`responds 401 'Unauthorized request' when invalid password`, () => {
                 const userInvalidPass = { user_name: testUsers[0].user_name, password: 'wrongpass' };
-                return supertest(app)
-                    .get(endpoint.path)
-                    .set('Authorization', makeAuthHeader(userInvalidPass))
+                return endpoint.method(endpoint.path)
+                    .set('Authorization', helpers.makeAuthHeader(userInvalidPass))
                     .expect(401, { error: 'Unauthorized request' });
             });
 
