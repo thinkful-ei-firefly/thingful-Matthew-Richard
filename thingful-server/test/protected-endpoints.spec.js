@@ -4,7 +4,7 @@ const knex = require('knex');
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-describe('Protected endpoints', function() {
+describe.only('Protected endpoints', function() {
     let db;
 
     const {
@@ -58,24 +58,26 @@ describe('Protected endpoints', function() {
         describe(endpoint.name, () => {
 
             // eslint-disable-next-line quotes
-            it(`responds with 401 'Missing basic token' when no basic token`, () => {
+            it(`responds with 401 'Missing bearer token' when no bearer token`, () => {
                 return endpoint.method(endpoint.path)
-                    .expect(401, { error: 'Missing basic token.' });
+                    .expect(401, { error: 'Missing bearer token' });
             });
 
             // eslint-disable-next-line quotes
-            it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
-                const userNoCreds = { user_name: '', password: '' };
+            it(`responds 401 'Unauthorized request' when invalid JWT secret`, () => {
+
+                const validUser = testUsers[0];
+                const invalidSecret = 'invalid';
                 return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userNoCreds))
+                    .set('Authorization', helpers.makeAuthHeader(validUser, invalidSecret))
                     .expect(401, { error: 'Unauthorized request' });
             });
 
             // eslint-disable-next-line quotes
-            it(`responds 401 'Unauthorized request' when invalid user`, () => {
-                const userInvalidCreds = { user_name: 'nouser', password: 'nopass' };
+            it(`responds 401 'Unauthorized request' when invalid subject in payload`, () => {
+                const invalidUser = { user_name: 'nouser', id: 1 };
                 return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userInvalidCreds))
+                    .set('Authorization', helpers.makeAuthHeader(invalidUser))
                     .expect(401, { error: 'Unauthorized request' });
             });
 
