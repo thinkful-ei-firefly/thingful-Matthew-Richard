@@ -1,6 +1,8 @@
 'use strict';
 
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 
 const AuthService = {
     getUserWithUserName(db, user_name) {
@@ -15,8 +17,14 @@ const AuthService = {
             .split(':');
     },
     comparePasswords(password, hash) {
-       return bcrypt.compare(password, hash)
+        return bcrypt.compare(password, hash)
     },
+    createJwt(subject, payload) {
+        return jwt.sign(payload, config.JWT_SECRET, {
+            subject,
+            algorithm: 'HS256'
+        });
+    }
 };
 
 module.exports = AuthService;

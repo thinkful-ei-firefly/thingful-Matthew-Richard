@@ -2,7 +2,7 @@
 
 const express = require('express');
 const jsonBodyParser = express.json();
-const authService = require('./auth-service')
+const authService = require('./auth-service');
 
 const authRouter = express.Router();
 
@@ -16,21 +16,25 @@ authRouter
                 return res.status(400).json({
                     error: `Missing '${key}' in request body`
                 });
-        };
+        }
         authService.getUserWithUserName(req.app.get('db'), user_name)
             .then(user => {
                 if (!user) {
-                  return res.status(400).json({error: 'Incorrect user_name or password'})
+                    return res.status(400).json({error: 'Incorrect user_name or password'});
                 }
                 return authService.comparePasswords(password, user.password)
-                  .then(comparison => {
-                    if(!comparison) {
-                      return res.status(400).json({error: 'Incorrect user_name or password'})
-                    }
-                    res.send('ok')
-                  }) 
+                    .then(comparison => {
+                        if(!comparison) {
+                            return res.status(400).json({error: 'Incorrect user_name or password'});
+                        }
+                        const payload = { user_id: user.id };
+                        const subject = user.user_name;
+                        res.send({
+                            authToken: authService.createJwt(subject, payload),
+                        });
+                    }); 
             })
-            .catch(next)
+            .catch(next);
     });
-
+                  
 module.exports = authRouter;
