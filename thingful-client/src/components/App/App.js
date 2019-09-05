@@ -32,18 +32,15 @@ class App extends Component {
               path={'/'}
               component={ThingListPage}
             />
-            <Route
-            // <PublicOnlyRoute
+            <PublicOnlyRoute
               path={'/login'}
               component={LoginPage}
             />
-            <Route
-            // <PublicOnlyRoute
+            <PublicOnlyRoute
               path={'/register'}
               component={RegistrationPage}
             />
-            <Route
-            // <PrivateRoute
+            <PrivateRoute
               path={'/thing/:thingId'}
               component={ThingPage}
             />
