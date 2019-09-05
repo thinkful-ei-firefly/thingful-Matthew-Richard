@@ -4,7 +4,7 @@ const knex = require('knex');
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-describe.only('Protected endpoints', function() {
+describe('Protected endpoints', function() {
     let db;
 
     const {
@@ -80,15 +80,6 @@ describe.only('Protected endpoints', function() {
                     .set('Authorization', helpers.makeAuthHeader(invalidUser))
                     .expect(401, { error: 'Unauthorized request' });
             });
-
-            //eslint-disable-next-line quotes
-            it(`responds 401 'Unauthorized request' when invalid password`, () => {
-                const userInvalidPass = { user_name: testUsers[0].user_name, password: 'wrongpass' };
-                return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userInvalidPass))
-                    .expect(401, { error: 'Unauthorized request' });
-            });
-
         });
     });
 });
